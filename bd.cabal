@@ -1,0 +1,22 @@
+name:                bd
+version:             0.1.0.0
+author:              Paweł Nowak
+maintainer:          pawel834@gmail.com
+build-type:          Simple
+cabal-version:       >=1.10
+
+executable bd
+  main-is:             Main.hs
+  other-modules:       Foundation
+                       Imports
+                       Sql
+                       Sql.User
+                       Sql.Schema
+                       Session.User
+                       Handlers.Auth
+  default-extensions:  OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,
+                       ScopedTypeVariables, MultiParamTypeClasses, NoImplicitPrelude,
+                       RankNTypes, ConstraintKinds
+  build-depends:       base < 6, text, yesod, persistent, persistent-postgresql,
+                       monad-logger, mtl, classy-prelude-yesod, aeson, file-embed
+  default-language:    Haskell2010
