@@ -16,10 +16,12 @@ executable bd
                        Sql.Common
                        Sql.Primitives
                        Sql.Classes
+                       Sql.Enums
                        Session.User
                        Handlers.Auth
                        Handlers.Primitives
                        Handlers.Classes
+                       Handlers.Enums
   default-extensions:  OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,
                        ScopedTypeVariables, MultiParamTypeClasses, NoImplicitPrelude,
                        RankNTypes, ConstraintKinds, ViewPatterns, FlexibleContexts

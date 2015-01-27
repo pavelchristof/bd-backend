@@ -10,6 +10,13 @@ getTypeId name = queryMaybeSingle
     \WHERE name = ?"
     [toPersistValue name]
 
+getDecl :: DeclId -> UserSQL (Maybe DBDecl)
+getDecl declId = queryMaybeSingle
+    "SELECT file \
+    \FROM $.Declarations \
+    \WHERE id = ?"
+    [toPersistValue declId]
+
 createDecl :: DBDecl -> UserSQL DeclId
 createDecl decl = querySingle
     "INSERT INTO $.Declarations (file) \

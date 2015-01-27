@@ -9,7 +9,7 @@ import           Database.Persist.Sql
 import           Foundation
 import           Sql
 
--- Ids.
+-- Type synonyms for clarity.
 
 type UserId = Int
 type DeclId = Int
@@ -18,6 +18,7 @@ type ValueId = Int
 type PrimitiveId = Int
 type ClassId = Int
 type FieldId = Int
+type EnumId = Int
 type MethodId = Int
 
 -- Declarations.
@@ -128,6 +129,18 @@ methodWithArgs (m, a) = object
     , "returnType" .= methodReturnType m
     , "argTypes" .= toJSON a
     ]
+
+-- Enums.
+
+data DBEnum = DBEnum {
+    enumType :: DBType,
+    enumItems :: [Text]
+}
+
+instance ToJSON DBEnum where
+    toJSON e = object
+        [ "type" .= toJSON (enumType e)
+        , "items" .= toJSON (enumItems e) ]
 
 -- Validation.
 

@@ -17,6 +17,8 @@ mkYesodData "App" [parseRoutes|
  /classes/#Text/fields/#Text FieldR GET DELETE
  /classes/#Text/methods/     MethodsR GET POST
  /method/#Int                MethodR GET DELETE
+ /enums/                     EnumsR GET POST
+ /enums/#Text                EnumR GET DELETE
  /auth/login/                LoginR GET POST
  /auth/logout/               LogoutR POST
  /auth/register/             RegisterR POST

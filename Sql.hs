@@ -67,5 +67,6 @@ instance MonadSQL SQL where
 
     execStmt query params = SQL $ rawExecute query params
 
+-- | Executes SQL queries in a single transaction.
 runSQL :: SQL a -> Handler a
 runSQL (SQL m) = runDB m

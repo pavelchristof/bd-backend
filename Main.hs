@@ -4,6 +4,7 @@ import Database.Persist.Postgresql
 import Handlers.Auth
 import Handlers.Classes
 import Handlers.Primitives
+import Handlers.Enums
 import Imports
 
 mkYesodDispatch "App" resourcesApp

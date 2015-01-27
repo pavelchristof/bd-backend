@@ -14,6 +14,15 @@ nameField = checkBool
     ("Invalid name." :: Text)
     textField
 
+identListField :: Field Handler [Text]
+identListField = Field
+    { fieldParse = \txts _ -> do
+        mapM_ validateIdent txts
+        return $ Right $ Just txts
+    , fieldView = \_ _ _ _ _ -> return ()
+    , fieldEnctype = UrlEncoded
+    }
+
 nameListField :: Field Handler [Text]
 nameListField = Field
     { fieldParse = \txts _ -> do
@@ -58,3 +67,8 @@ methodForm = (,) <$> body <*> args
         <*> ireq nameField "returnType"
     args = DBMethodArgs
         <$> ireq nameListField "argTypes"
+
+enumForm :: FormInput Handler DBEnum
+enumForm = DBEnum
+    <$> typeForm
+    <*> ireq identListField "items"
