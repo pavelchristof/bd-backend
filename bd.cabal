@@ -16,7 +16,9 @@ executable bd
                        Handlers.Auth
   default-extensions:  OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,
                        ScopedTypeVariables, MultiParamTypeClasses, NoImplicitPrelude,
-                       RankNTypes, ConstraintKinds
+                       RankNTypes, ConstraintKinds, ViewPatterns
   build-depends:       base < 6, text, yesod, persistent, persistent-postgresql,
-                       monad-logger, mtl, classy-prelude-yesod, aeson, file-embed
+                       monad-logger, mtl, classy-prelude-yesod, aeson, file-embed,
+                       language-java, parsec
   default-language:    Haskell2010
+--  ghc-options:         -ddump-splices

@@ -2,8 +2,6 @@ module Sql.User where
 
 import Imports
 
-type UserId = Int
-
 userWithIdExists :: UserId -> SQL Bool
 userWithIdExists uid = querySingle
     "SELECT EXISTS (SELECT 1 FROM Users WHERE id=?)"

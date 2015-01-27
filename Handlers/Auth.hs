@@ -20,30 +20,29 @@ usernameField = checkBool
 
 -- Handlers.
 
-getLogin :: Handler Value
-getLogin = jsonResult $ do
+getLoginR :: Handler Value
+getLoginR = jsonResult $ do
     user <- getUser
     forM user $ runDB . getUserName
 
-postLogin :: Handler Value
-postLogin = jsonResult $ do
+postLoginR :: Handler Value
+postLoginR = jsonResult $ do
     (username, password) <- runInputPost loginForm
-    mbId <- runDB $ findUser username password
-    case mbId of
-      Nothing -> fail "Invalid username or password."
-      Just uid -> setUser (Just uid)
+    uid <- runDB (findUser username password)
+           `orElseM` fail "Invalid username or password."
+    setUser (Just uid)
   where
     loginForm = (,)
         <$> ireq usernameField "username"
         <*> ireq passwordField "password"
 
-postLogout :: Handler Value
-postLogout = jsonResult $ do
+postLogoutR :: Handler Value
+postLogoutR = jsonResult $ do
     _ <- requireUser
     setUser Nothing
 
-postRegister :: Handler Value
-postRegister = jsonResult $ do
+postRegisterR :: Handler Value
+postRegisterR = jsonResult $ do
     (username, password) <- runInputPost registerForm
     uid <- runDB $ do
         alreadyExists <- userWithNameExists username
@@ -57,8 +56,8 @@ postRegister = jsonResult $ do
         <$> ireq usernameField "username"
         <*> ireq passwordField "password"
 
-postDelete :: Handler Value
-postDelete = jsonResult $ do
+postDeleteR :: Handler Value
+postDeleteR = jsonResult $ do
     user <- requireUser
     runDB $ do
         dropSchema user

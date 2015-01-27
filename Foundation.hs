@@ -2,6 +2,7 @@ module Foundation where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Sql
+import Types
 
 -- | The application.
 data App = App ConnectionPool
@@ -9,10 +10,15 @@ data App = App ConnectionPool
 -- Routes.
 
 mkYesodData "App" [parseRoutes|
- /auth/login/    Login GET POST
- /auth/logout/   Logout POST
- /auth/register/ Register POST
- /auth/delete/   Delete POST
+ /classes/#Text               ClassR GET
+-- /classes/#Text/fields/       FieldsR GET POST
+-- /classes/#Text/fields/#Text  FieldR GET
+-- /classes/#Text/methods/      MethodsR GET POST
+-- /classes/#Text/methods/#Text MethodR GET
+ /auth/login/                 LoginR GET POST
+ /auth/logout/                LogoutR POST
+ /auth/register/              RegisterR POST
+ /auth/delete/                DeleteR POST
  |]
 
 -- JSON error messages.

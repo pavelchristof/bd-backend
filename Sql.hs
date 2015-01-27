@@ -2,6 +2,7 @@ module Sql where
 
 import ClassyPrelude.Yesod
 import Database.Persist.Sql
+import Utils
 
 -- | A composable SQL query.
 type SQL a = (MonadIO m, Functor m) => ReaderT SqlBackend m a
@@ -14,8 +15,5 @@ queryMaybeSingle query params = do
 
 -- | Runs a query that returns a single value.
 querySingle :: forall a. PersistField a => Text -> [PersistValue] -> SQL a
-querySingle query params = do
-    mbValue <- queryMaybeSingle query params
-    case mbValue of
-      Nothing -> fail "Database query error."
-      Just value -> return value
+querySingle query params =
+    queryMaybeSingle query params `orElseM` fail "Database query error."
