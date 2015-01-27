@@ -10,6 +10,14 @@ getTypeId name = queryMaybeSingle
     \WHERE name = ?"
     [toPersistValue name]
 
+getPrimitiveId :: Text -> UserSQL (Maybe PrimitiveId)
+getPrimitiveId name = queryMaybeSingle
+    "SELECT $.Primitives.id \
+    \FROM $.Primitives \
+    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
+    \WHERE name = ?"
+    [toPersistValue name]
+
 getClassId :: Text -> UserSQL (Maybe ClassId)
 getClassId name = queryMaybeSingle
     "SELECT $.Classes.id \
@@ -24,6 +32,23 @@ getFieldId classId fieldIdent = queryMaybeSingle
     \FROM $.Fields \
     \WHERE $.Fields.class = ? AND $.Fields.name = ?"
     [toPersistValue classId, toPersistValue fieldIdent]
+
+getPrimitive :: Text -> UserSQL (Maybe DBType)
+getPrimitive name = queryMaybeSingle
+    "SELECT $.Declarations.file, $.Types.name \
+    \FROM $.Primitives \
+    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
+    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Primitives.id \
+    \WHERE $.Types.name = ?"
+    [toPersistValue name]
+
+getPrimitives :: UserSQL [DBType]
+getPrimitives = queryMany
+    "SELECT $.Declarations.file, $.Types.name \
+    \FROM $.Primitives \
+    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
+    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Primitives.id"
+    []
 
 getClass :: Text -> UserSQL (Maybe DBClass)
 getClass name = queryMaybeSingle
@@ -118,6 +143,15 @@ createValue val = do
       \VALUES (?, ?)"
       [toPersistValue vid, toPersistValue (valueIdent val)]
     return vid
+
+createPrimitive :: DBType -> UserSQL PrimitiveId
+createPrimitive ty = do
+    primId <- createType ty
+    execStmt
+      "INSERT INTO $.Primitives (id) \
+      \VALUES (?)"
+      [toPersistValue primId]
+    return primId
 
 createClass :: DBClass -> UserSQL ClassId
 createClass cl = do

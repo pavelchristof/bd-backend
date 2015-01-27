@@ -1,14 +1,13 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Types where
 
-import ClassyPrelude.Yesod
-import Data.Either
-import Database.Persist.Sql
-import Language.Java.Parser hiding (fieldDecl)
-import Text.Parsec (eof)
+import           ClassyPrelude.Yesod
+import           Data.Char
+import qualified Data.Text as T
+import           Database.Persist.Sql
 
-import Foundation
-import Sql
+import           Foundation
+import           Sql
 
 -- Ids.
 
@@ -16,6 +15,7 @@ type UserId = Int
 type DeclId = Int
 type TypeId = Int
 type ValueId = Int
+type PrimitiveId = Int
 type ClassId = Int
 type FieldId = Int
 type MethodId = Int
@@ -136,10 +136,13 @@ validate check msg x =
     unless (check x) $ fail msg
 
 isIdentOk :: Text -> Bool
-isIdentOk = isRight . parser (ident <* eof) . unpack
+isIdentOk t = not (null t)
+           && all isAlphaNum t
+           && isAlpha (T.head t)
 
 isNameOk :: Text -> Bool
-isNameOk = isRight . parser (name <* eof) . unpack
+isNameOk t = not (null t)
+          && all isIdentOk (T.splitOn "." t)
 
 validateIdent :: Text -> Handler ()
 validateIdent = validate isIdentOk "Invalid identifier."
