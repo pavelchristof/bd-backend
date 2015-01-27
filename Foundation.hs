@@ -9,16 +9,16 @@ data App = App ConnectionPool
 -- Routes.
 
 mkYesodData "App" [parseRoutes|
- /classes/                    ClassesR POST
- /classes/#Text               ClassR GET
--- /classes/#Text/fields/       FieldsR GET
--- /classes/#Text/fields/#Text  FieldR GET
--- /classes/#Text/methods/      MethodsR GET POST
--- /classes/#Text/methods/#Text MethodR GET
- /auth/login/                 LoginR GET POST
- /auth/logout/                LogoutR POST
- /auth/register/              RegisterR POST
- /auth/delete/                DeleteR POST
+ /classes/                   ClassesR POST
+ /classes/#Text              ClassR GET DELETE
+ /classes/#Text/fields/      FieldsR GET POST
+ /classes/#Text/fields/#Text FieldR GET DELETE
+ /classes/#Text/methods/     MethodsR GET POST
+ /method/#Int                MethodR GET DELETE
+ /auth/login/                LoginR GET POST
+ /auth/logout/               LogoutR POST
+ /auth/register/             RegisterR POST
+ /auth/delete/               DeleteR POST
  |]
 
 -- JSON error messages.

@@ -10,7 +10,7 @@ import Data.Char
 -- Data validation.
 
 validateUsername :: Text -> Bool
-validateUsername = all (\c -> isAlphaNum c)
+validateUsername = all isAlphaNum
 
 usernameField :: Field Handler Text
 usernameField = checkBool

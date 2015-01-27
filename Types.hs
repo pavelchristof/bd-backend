@@ -18,6 +18,7 @@ type TypeId = Int
 type ValueId = Int
 type ClassId = Int
 type FieldId = Int
+type MethodId = Int
 
 -- Declarations.
 
@@ -97,32 +98,32 @@ instance ToJSON DBField where
     toJSON f = object
         [ "value" .= toJSON (fieldValue f)
         , "static" .= fieldStatic f
-        , "typeName" .= fieldTypeName f ]
+        , "type" .= fieldTypeName f ]
 
 -- Methods.
 
 data DBMethod = DBMethod {
+    methodId :: MethodId,
     methodValue :: DBValue,
-    methodClass :: Text,
     methodStatic :: Bool,
     methodReturnType :: Text
 }
 
 instance SqlRow DBMethod where
-    type RawSqlType DBMethod = (RawSqlType DBValue, Single Text, Single Bool, Single Text)
-    fromRawSql (val, Single cid, Single s, Single rt) = DBMethod (fromRawSql val) cid s rt
+    type RawSqlType DBMethod = (Single MethodId, RawSqlType DBValue, Single Bool, Single Text)
+    fromRawSql (Single mid, val, Single s, Single rt) = DBMethod mid (fromRawSql val) s rt
 
 -- Method args.
 
-newtype DBMethodArgs = DBMethodArgs { getMethodArgs :: [Text] }
+newtype DBMethodArgs = DBMethodArgs { methodArgs :: [Text] }
 
 instance ToJSON DBMethodArgs where
     toJSON (DBMethodArgs xs) = toJSON xs
 
-methodWithArgs :: DBMethod -> DBMethodArgs -> Value
-methodWithArgs m a = object
-    [ "value" .= toJSON (methodValue m)
-    , "class" .= methodClass m
+methodWithArgs :: (DBMethod, DBMethodArgs) -> Value
+methodWithArgs (m, a) = object
+    [ "id" .= methodId m
+    , "value" .= toJSON (methodValue m)
     , "static" .= toJSON (methodStatic m)
     , "returnType" .= methodReturnType m
     , "argTypes" .= toJSON a
@@ -133,9 +134,7 @@ methodWithArgs m a = object
 parse what = parser (what <* eof) . unpack
 
 validate check msg x =
-    if check x
-       then return ()
-       else fail msg
+    unless (check x) $ fail msg
 
 isIdentOk :: Text -> Bool
 isIdentOk = isRight . parse ident

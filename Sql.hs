@@ -5,9 +5,10 @@ import ClassyPrelude.Yesod
 import Database.Persist.Sql
 import Utils
 
--- | A composable SQL query.
+-- | A normal SQL query.
 type SQL a = (MonadIO m, Functor m) => ReaderT SqlBackend m a
 
+-- | Types that can be read from an Sql row.
 class RawSql (RawSqlType a) => SqlRow a where
     type RawSqlType a :: *
     type RawSqlType a = Single a
@@ -28,7 +29,15 @@ instance (SqlRow a, SqlRow b, SqlRow c) => SqlRow (a, b, c) where
     type RawSqlType (a, b, c) = (RawSqlType a, RawSqlType b, RawSqlType c)
     fromRawSql (a, b, c) = (fromRawSql a, fromRawSql b, fromRawSql c)
 
--- | Runs a query that returns a single value or nothing.
+class MonadIO m => MonadSQL m where
+    -- | Runs a query that returns a single value or nothing.
+    queryMaybeSingle :: SqlRow a => Text -> [PersistValue] -> m (Maybe a)
+    querySingle :: SqlRow a => Text -> [PersistValue] -> m a
+    queryMany :: SqlRow a => Text -> [PersistValue] -> SQL [a]
+    execStmt :: Text -> [PersistValue] -> SQL ()
+
+
+
 queryMaybeSingle :: forall a. SqlRow a => Text -> [PersistValue] -> SQL (Maybe a)
 queryMaybeSingle query params = do
     (result :: [RawSqlType a]) <- rawSql query params

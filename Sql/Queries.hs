@@ -14,11 +14,19 @@ getTypeId uid name = queryMaybeSingle
 getClassId :: UserId -> Text -> SQL (Maybe ClassId)
 getClassId uid name = queryMaybeSingle
     (sqlForUser uid
-      "SELECT id \
+      "SELECT $.Classes.id \
       \FROM $.Classes \
       \  INNER JOIN $.Types ON $.Types.id = $.Classes.id \
       \WHERE $.Types.name = ?")
     [toPersistValue name]
+
+getFieldId :: UserId -> ClassId -> Text -> SQL (Maybe FieldId)
+getFieldId uid classId fieldIdent = queryMaybeSingle
+    (sqlForUser uid
+      "SELECT $.Fields.id \
+      \FROM $.Fields \
+      \WHERE $.Fields.class = ? AND $.Fields.name = ?")
+    [toPersistValue classId, toPersistValue fieldIdent]
 
 getClass :: UserId -> Text -> SQL (Maybe DBClass)
 getClass uid name = queryMaybeSingle
@@ -49,6 +57,43 @@ getField uid cid name = queryMaybeSingle
       \  INNER JOIN $.Declarations ON $.Declarations.id = $.Fields.id \
       \WHERE $.Fields.class = ? AND $.Fields.name = ?")
     [toPersistValue cid, toPersistValue name]
+
+getMethodArgs :: UserId -> MethodId -> SQL DBMethodArgs
+getMethodArgs uid methId = DBMethodArgs <$> queryMany
+    (sqlForUser uid
+      "SELECT $.Types.name \
+      \FROM $.Arguments \
+      \  INNER JOIN $.Types ON $.Types.id = $.Arguments.type \
+      \WHERE $.Arguments.func = ? \
+      \ORDER BY $.Arguments.index")
+    [toPersistValue methId]
+
+getMethods :: UserId -> ClassId -> SQL [(DBMethod, DBMethodArgs)]
+getMethods uid classId = do
+    methods <- queryMany
+      (sqlForUser uid
+        "SELECT $.Methods.id, $.Declarations.file, $.Methods.name, $.Methods.static, $.Types.name \
+        \FROM $.Methods \
+        \  INNER JOIN $.Declarations ON $.Declarations.id = $.Methods.id \
+        \  INNER JOIN $.Types ON $.Types.id = $.Methods.returnType \
+        \WHERE $.Methods.class = ?")
+      [toPersistValue classId]
+    args <- mapM (getMethodArgs uid . methodId) methods
+    return $ zip methods args
+
+getMethod :: UserId -> MethodId -> SQL (Maybe (DBMethod, DBMethodArgs))
+getMethod uid methId = do
+    mbMethod <- queryMaybeSingle
+      (sqlForUser uid
+        "SELECT $.Methods.id, $.Declarations.file, $.Methods.name, $.Methods.static, $.Types.name \
+        \FROM $.Methods \
+        \  INNER JOIN $.Declarations ON $.Declarations.id = $.Methods.id \
+        \  INNER JOIN $.Types ON $.Types.id = $.Methods.returnType \
+        \WHERE $.Methods.id = ?")
+      [toPersistValue methId]
+    forM mbMethod $ \method -> do
+        args <- getMethodArgs uid methId
+        return (method, args)
 
 createDecl :: UserId -> DBDecl -> SQL DeclId
 createDecl uid decl = querySingle
@@ -104,3 +149,40 @@ createField uid classId f = do
       , toPersistValue typeId
       ]
     return fieldId
+
+createMethod :: UserId -> ClassId -> DBMethod -> DBMethodArgs -> SQL MethodId
+createMethod uid classId m (DBMethodArgs args) = do
+    mId <- createValue uid (methodValue m)
+    retType <- getTypeId uid (methodReturnType m)
+               `orElseM` fail ("Invalid method return type: "
+                              <> unpack (methodReturnType m))
+
+    rawExecute
+      (sqlForUser uid
+        "INSERT INTO $.Methods (id, name, class, static, returnType) \
+        \VALUES (?, ?, ?, ?, ?)")
+      [ toPersistValue mId
+      , toPersistValue (valueIdent $ methodValue m)
+      , toPersistValue classId
+      , toPersistValue (methodStatic m)
+      , toPersistValue retType
+      ]
+
+    forM_ (zip args [0..]) $ \(arg, idx :: Int) -> do
+        typeId <- getTypeId uid arg
+                  `orElseM` fail ("Invalid method argument type: "
+                                 <> unpack arg)
+        rawExecute
+          (sqlForUser uid
+            "INSERT INTO $.Arguments (func, index, type) \
+            \VALUES (?, ?, ?)")
+          [toPersistValue mId, toPersistValue idx, toPersistValue typeId]
+
+    return mId
+
+deleteDecl :: UserId -> DeclId -> SQL ()
+deleteDecl uid declId = rawExecute
+    (sqlForUser uid
+      "DELETE FROM $.Declarations \
+      \WHERE id = ?")
+    [toPersistValue declId]
