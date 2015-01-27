@@ -3,7 +3,9 @@ module Handlers.Api where
 import Imports
 
 import Session.User
-import Sql.Queries
+import Sql.Primitives
+import Sql.Common
+import Sql.Classes
 import Sql.User
 
 -- Validation.

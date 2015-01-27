@@ -1,22 +1,8 @@
-module Sql.Queries where
+module Sql.Classes where
 
 import Imports
 import Sql.User
-
-getTypeId :: Text -> UserSQL (Maybe TypeId)
-getTypeId name = queryMaybeSingle
-    "SELECT id \
-    \FROM $.Types \
-    \WHERE name = ?"
-    [toPersistValue name]
-
-getPrimitiveId :: Text -> UserSQL (Maybe PrimitiveId)
-getPrimitiveId name = queryMaybeSingle
-    "SELECT $.Primitives.id \
-    \FROM $.Primitives \
-    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
-    \WHERE name = ?"
-    [toPersistValue name]
+import Sql.Common
 
 getClassId :: Text -> UserSQL (Maybe ClassId)
 getClassId name = queryMaybeSingle
@@ -32,23 +18,6 @@ getFieldId classId fieldIdent = queryMaybeSingle
     \FROM $.Fields \
     \WHERE $.Fields.class = ? AND $.Fields.name = ?"
     [toPersistValue classId, toPersistValue fieldIdent]
-
-getPrimitive :: Text -> UserSQL (Maybe DBType)
-getPrimitive name = queryMaybeSingle
-    "SELECT $.Declarations.file, $.Types.name \
-    \FROM $.Primitives \
-    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
-    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Primitives.id \
-    \WHERE $.Types.name = ?"
-    [toPersistValue name]
-
-getPrimitives :: UserSQL [DBType]
-getPrimitives = queryMany
-    "SELECT $.Declarations.file, $.Types.name \
-    \FROM $.Primitives \
-    \  INNER JOIN $.Types ON $.Types.id = $.Primitives.id \
-    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Primitives.id"
-    []
 
 getClass :: Text -> UserSQL (Maybe DBClass)
 getClass name = queryMaybeSingle
@@ -67,15 +36,6 @@ getClasses = queryMany
     \  INNER JOIN $.Declarations ON $.Declarations.id = $.Classes.id"
     []
 
-getFields :: ClassId -> UserSQL [DBField]
-getFields cid = queryMany
-    "SELECT $.Declarations.file, $.Fields.name, $.Fields.static, $.Types.name \
-    \FROM $.Fields \
-    \  INNER JOIN $.Types ON $.Fields.type = $.Types.id \
-    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Fields.id \
-    \WHERE $.Fields.class = ?"
-    [toPersistValue cid]
-
 getField :: ClassId -> Text -> UserSQL (Maybe DBField)
 getField cid name = queryMaybeSingle
     "SELECT $.Declarations.file, $.Fields.name, $.Fields.static, $.Types.name \
@@ -85,6 +45,15 @@ getField cid name = queryMaybeSingle
     \WHERE $.Fields.class = ? AND $.Fields.name = ?"
     [toPersistValue cid, toPersistValue name]
 
+getFields :: ClassId -> UserSQL [DBField]
+getFields cid = queryMany
+    "SELECT $.Declarations.file, $.Fields.name, $.Fields.static, $.Types.name \
+    \FROM $.Fields \
+    \  INNER JOIN $.Types ON $.Fields.type = $.Types.id \
+    \  INNER JOIN $.Declarations ON $.Declarations.id = $.Fields.id \
+    \WHERE $.Fields.class = ?"
+    [toPersistValue cid]
+
 getMethodArgs :: MethodId -> UserSQL DBMethodArgs
 getMethodArgs methId = DBMethodArgs <$> queryMany
     "SELECT $.Types.name \
@@ -93,18 +62,6 @@ getMethodArgs methId = DBMethodArgs <$> queryMany
     \WHERE $.Arguments.func = ? \
     \ORDER BY $.Arguments.index"
     [toPersistValue methId]
-
-getMethods :: ClassId -> UserSQL [(DBMethod, DBMethodArgs)]
-getMethods classId = do
-    methods <- queryMany
-      "SELECT $.Methods.id, $.Declarations.file, $.Methods.name, $.Methods.static, $.Types.name \
-      \FROM $.Methods \
-      \  INNER JOIN $.Declarations ON $.Declarations.id = $.Methods.id \
-      \  INNER JOIN $.Types ON $.Types.id = $.Methods.returnType \
-      \WHERE $.Methods.class = ?"
-      [toPersistValue classId]
-    args <- mapM (getMethodArgs . methodId) methods
-    return $ zip methods args
 
 getMethod :: MethodId -> UserSQL (Maybe (DBMethod, DBMethodArgs))
 getMethod methId = do
@@ -119,39 +76,18 @@ getMethod methId = do
         args <- getMethodArgs methId
         return (method, args)
 
-createDecl :: DBDecl -> UserSQL DeclId
-createDecl decl = querySingle
-    "INSERT INTO $.Declarations (file) \
-    \VALUES (?) \
-    \RETURNING id"
-    [toPersistValue (declFile decl)]
+getMethods :: ClassId -> UserSQL [(DBMethod, DBMethodArgs)]
+getMethods classId = do
+    methods <- queryMany
+      "SELECT $.Methods.id, $.Declarations.file, $.Methods.name, $.Methods.static, $.Types.name \
+      \FROM $.Methods \
+      \  INNER JOIN $.Declarations ON $.Declarations.id = $.Methods.id \
+      \  INNER JOIN $.Types ON $.Types.id = $.Methods.returnType \
+      \WHERE $.Methods.class = ?"
+      [toPersistValue classId]
+    args <- mapM (getMethodArgs . methodId) methods
+    return $ zip methods args
 
-createType :: DBType -> UserSQL TypeId
-createType ty = do
-    typeId <- createDecl (typeDecl ty)
-    execStmt
-      "INSERT INTO $.Types (id, name) \
-      \VALUES (?, ?)"
-      [toPersistValue typeId, toPersistValue (typeName ty)]
-    return typeId
-
-createValue :: DBValue -> UserSQL ValueId
-createValue val = do
-    vid <- createDecl (valueDecl val)
-    execStmt
-      "INSERT INTO $.Values (id, name) \
-      \VALUES (?, ?)"
-      [toPersistValue vid, toPersistValue (valueIdent val)]
-    return vid
-
-createPrimitive :: DBType -> UserSQL PrimitiveId
-createPrimitive ty = do
-    primId <- createType ty
-    execStmt
-      "INSERT INTO $.Primitives (id) \
-      \VALUES (?)"
-      [toPersistValue primId]
-    return primId
 
 createClass :: DBClass -> UserSQL ClassId
 createClass cl = do
@@ -205,9 +141,3 @@ createMethod classId m (DBMethodArgs args) = do
           [toPersistValue mId, toPersistValue idx, toPersistValue typeId]
 
     return mId
-
-deleteDecl :: DeclId -> UserSQL ()
-deleteDecl declId = execStmt
-    "DELETE FROM $.Declarations \
-    \WHERE id = ?"
-    [toPersistValue declId]

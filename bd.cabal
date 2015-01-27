@@ -12,7 +12,9 @@ executable bd
                        Sql
                        Sql.Auth
                        Sql.User
-                       Sql.Queries
+                       Sql.Common
+                       Sql.Primitives
+                       Sql.Classes
                        Session.User
                        Handlers.Auth
                        Handlers.Api
