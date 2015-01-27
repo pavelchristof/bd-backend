@@ -1,102 +1,11 @@
-module Handlers.Api where
+module Handlers.Classes where
 
+import Forms
 import Imports
-
 import Session.User
-import Sql.Primitives
-import Sql.Common
 import Sql.Classes
+import Sql.Common
 import Sql.User
-
--- Validation.
-
-identField :: Field Handler Text
-identField = checkBool
-    isIdentOk
-    ("Invalid identifier." :: Text)
-    textField
-
-nameField :: Field Handler Text
-nameField = checkBool
-    isNameOk
-    ("Invalid name." :: Text)
-    textField
-
-nameListField :: Field Handler [Text]
-nameListField = Field
-    { fieldParse = \txts _ -> do
-        mapM_ validateName txts
-        return $ Right $ Just txts
-    , fieldView = \_ _ _ _ _ -> return ()
-    , fieldEnctype = UrlEncoded
-    }
-
--- Forms.
-
-declForm :: FormInput Handler DBDecl
-declForm = DBDecl
-    <$> iopt textField "file"
-
-valueForm :: FormInput Handler DBValue
-valueForm = DBValue
-    <$> declForm
-    <*> ireq identField "ident"
-
-typeForm :: FormInput Handler DBType
-typeForm = DBType
-    <$> declForm
-    <*> ireq nameField "name"
-
-classForm :: FormInput Handler DBClass
-classForm = DBClass
-    <$> typeForm
-    <*> ireq boolField "isStruct"
-
-fieldForm :: FormInput Handler DBField
-fieldForm = DBField
-    <$> valueForm
-    <*> ireq boolField "static"
-    <*> ireq nameField "type"
-
-methodForm :: FormInput Handler (DBMethod, DBMethodArgs)
-methodForm = (,) <$> body <*> args
-  where
-    body = DBMethod
-        <$> pure 0
-        <*> valueForm
-        <*> ireq boolField "static"
-        <*> ireq nameField "returnType"
-    args = DBMethodArgs
-        <$> ireq nameListField "argTypes"
-
--- Handlers.
-
-getPrimitivesR :: Handler Value
-getPrimitivesR = jsonResult $ do
-    uid <- requireUser
-    runUserSQL uid $ getPrimitives
-
-postPrimitivesR :: Handler Value
-postPrimitivesR = jsonResult $ do
-    uid <- requireUser
-    ty <- runInputPost typeForm
-    _ <- runUserSQL uid $ createPrimitive ty
-    return ()
-
-getPrimitiveR :: Text -> Handler Value
-getPrimitiveR primName = jsonResult $ do
-    uid <- requireUser
-    validateName primName
-    runUserSQL uid $ getPrimitive primName
-
-deletePrimitiveR :: Text -> Handler Value
-deletePrimitiveR primName = jsonResult $ do
-    uid <- requireUser
-    validateName primName
-    runUserSQL uid $ do
-        primId <- getPrimitiveId primName
-                  `orElseM` fail "The primitive type does not exist."
-        deleteDecl primId
 
 getClassesR :: Handler Value
 getClassesR = jsonResult $ do

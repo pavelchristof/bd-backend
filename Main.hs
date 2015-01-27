@@ -1,8 +1,9 @@
 import Control.Monad.Logger (runStderrLoggingT)
 import Database.Persist.Postgresql
 
-import Handlers.Api
 import Handlers.Auth
+import Handlers.Classes
+import Handlers.Primitives
 import Imports
 
 mkYesodDispatch "App" resourcesApp

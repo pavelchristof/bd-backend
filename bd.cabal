@@ -9,6 +9,7 @@ executable bd
   main-is:             Main.hs
   other-modules:       Foundation
                        Imports
+                       Forms
                        Sql
                        Sql.Auth
                        Sql.User
@@ -17,7 +18,8 @@ executable bd
                        Sql.Classes
                        Session.User
                        Handlers.Auth
-                       Handlers.Api
+                       Handlers.Primitives
+                       Handlers.Classes
   default-extensions:  OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,
                        ScopedTypeVariables, MultiParamTypeClasses, NoImplicitPrelude,
                        RankNTypes, ConstraintKinds, ViewPatterns, FlexibleContexts
