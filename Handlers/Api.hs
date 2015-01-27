@@ -4,6 +4,7 @@ import Imports
 
 import Session.User
 import Sql.Queries
+import Sql.User
 
 -- Validation.
 
@@ -68,47 +69,52 @@ methodForm = (,) <$> body <*> args
 
 -- Handlers.
 
+getClassesR :: Handler Value
+getClassesR = jsonResult $ do
+    uid <- requireUser
+    runUserSQL uid $ getClasses
+
 postClassesR :: Handler Value
 postClassesR = jsonResult $ do
     uid <- requireUser
     cl <- runInputPost classForm
-    _ <- runDB $ createClass uid cl
+    _ <- runUserSQL uid $ createClass cl
     return ()
 
 getClassR :: Text -> Handler Value
 getClassR className = jsonResult $ do
     uid <- requireUser
     validateName className
-    runDB $ getClass uid className
+    runUserSQL uid $ getClass className
             `orElseM` fail "Class does not exist."
 
 deleteClassR :: Text -> Handler Value
 deleteClassR className = jsonResult $ do
     uid <- requireUser
     validateName className
-    runDB $ do
-        classId <- getClassId uid className
+    runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        deleteDecl uid classId
+        deleteDecl classId
 
 getFieldsR :: Text -> Handler Value
 getFieldsR className = jsonResult $ do
     uid <- requireUser
     validateName className
-    runDB $ do
-        cid <- getTypeId uid className
+    runUserSQL uid $ do
+        cid <- getTypeId className
                `orElseM` fail "Class does not exist."
-        getFields uid cid
+        getFields cid
 
 postFieldsR :: Text -> Handler Value
 postFieldsR className = jsonResult $ do
     uid <- requireUser
     validateName className
     field <- runInputPost fieldForm
-    _ <- runDB $ do
-        classId <- getClassId uid className
+    _ <- runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        createField uid classId field
+        createField classId field
     return ()
 
 getFieldR :: Text -> Text -> Handler Value
@@ -116,10 +122,10 @@ getFieldR className fieldIdent = jsonResult $ do
     uid <- requireUser
     validateName className
     validateIdent fieldIdent
-    runDB $ do
-        classId <- getClassId uid className
+    runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        getField uid classId fieldIdent
+        getField classId fieldIdent
             `orElseM` fail "Field does not exist."
 
 deleteFieldR :: Text -> Text -> Handler Value
@@ -127,21 +133,21 @@ deleteFieldR className fieldIdent = jsonResult $ do
     uid <- requireUser
     validateName className
     validateIdent fieldIdent
-    runDB $ do
-        classId <- getClassId uid className
+    runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        fieldId <- getFieldId uid classId fieldIdent
+        fieldId <- getFieldId classId fieldIdent
             `orElseM` fail "Field does not exist."
-        deleteDecl uid fieldId
+        deleteDecl fieldId
 
 getMethodsR :: Text -> Handler Value
 getMethodsR className = jsonResult $ do
     uid <- requireUser
     validateName className
-    methods <- runDB $ do
-        classId <- getClassId uid className
+    methods <- runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        getMethods uid classId
+        getMethods classId
     return $ map methodWithArgs methods
 
 postMethodsR :: Text -> Handler Value
@@ -149,23 +155,23 @@ postMethodsR className = jsonResult $ do
     uid <- requireUser
     validateName className
     (method, args) <- runInputPost methodForm
-    mId <- runDB $ do
-        classId <- getClassId uid className
+    mId <- runUserSQL uid $ do
+        classId <- getClassId className
                    `orElseM` fail "Class does not exist."
-        createMethod uid classId method args
+        createMethod classId method args
     let method' = method { methodId = mId }
     return $ methodWithArgs (method', args)
 
 getMethodR :: MethodId -> Handler Value
 getMethodR methodId = jsonResult $ do
     uid <- requireUser
-    method <- runDB $ getMethod uid methodId
+    method <- runUserSQL uid $ getMethod methodId
               `orElseM` fail "Method does not exist."
     return $ methodWithArgs method
 
 deleteMethodR :: MethodId -> Handler Value
 deleteMethodR methodId = jsonResult $ do
     uid <- requireUser
-    runDB $ do
-        getMethod uid methodId `orElseM` fail "Method does not exist."
-        deleteDecl uid methodId
+    runUserSQL uid $ do
+        getMethod methodId `orElseM` fail "Method does not exist."
+        deleteDecl methodId

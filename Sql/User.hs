@@ -1,35 +1,30 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Sql.User where
 
 import Imports
 
-userWithIdExists :: UserId -> SQL Bool
-userWithIdExists uid = querySingle
-    "SELECT EXISTS (SELECT 1 FROM Users WHERE id=?)"
-    [toPersistValue uid]
+import qualified Data.Text as T
 
-userWithNameExists :: Text -> SQL Bool
-userWithNameExists username = querySingle
-    "SELECT EXISTS (SELECT 1 FROM Users WHERE username=?)"
-    [toPersistValue username]
+-- | Replaces all dollars with the users schema name.
+sqlForUser :: UserId -> Text -> Text
+sqlForUser uid sql = T.replace "$." schemaName sql
+  where
+    schemaName = "user_" <> pack (show uid) <> "_"
 
-getUserName :: UserId -> SQL Text
-getUserName uid = querySingle
-    "SELECT username FROM Users WHERE id=?"
-    [toPersistValue uid]
+-- | SQL queries which depend on currently logged in user.
+newtype UserSQL a = UserSQL (ReaderT UserId SQL a)
+    deriving (Functor, Applicative, Monad, MonadIO)
 
--- TODO: Hash the passwords.
+instance MonadSQL UserSQL where
+    queryMaybeSingle query params = UserSQL $ ReaderT $ \uid ->
+        queryMaybeSingle (sqlForUser uid query) params
+    querySingle query params = UserSQL $ ReaderT $ \uid ->
+        querySingle (sqlForUser uid query) params
+    queryMany query params = UserSQL $ ReaderT $ \uid ->
+        queryMany (sqlForUser uid query) params
+    execStmt query params = UserSQL $ ReaderT $ \uid ->
+        execStmt (sqlForUser uid query) params
 
-createUser :: Text -> Text -> SQL UserId
-createUser username password = querySingle
-    "INSERT INTO Users (username, password) VALUES (?, ?) RETURNING id"
-    [toPersistValue username, toPersistValue password]
-
-findUser :: Text -> Text -> SQL (Maybe UserId)
-findUser username password = queryMaybeSingle
-    "SELECT id FROM Users WHERE username=? AND password=?"
-    [toPersistValue username, toPersistValue password]
-
-deleteUser :: UserId -> SQL ()
-deleteUser uid = rawExecute
-    "DELETE FROM Users WHERE id=?"
-    [toPersistValue uid]
+-- | Executes queries in context of the given user.
+runUserSQL :: UserId -> UserSQL a -> Handler a
+runUserSQL uid (UserSQL m) = runSQL $ runReaderT m uid

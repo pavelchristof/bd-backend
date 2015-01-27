@@ -1,12 +1,18 @@
 {-# LANGUAGE DefaultSignatures #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Sql where
 
 import ClassyPrelude.Yesod
+import Data.FileEmbed
 import Database.Persist.Sql
+import Foundation
 import Utils
 
--- | A normal SQL query.
-type SQL a = (MonadIO m, Functor m) => ReaderT SqlBackend m a
+-- | Creates the database.
+createDB :: MonadIO m => ReaderT SqlBackend m ()
+createDB = rawExecute sql []
+  where
+    sql = decodeUtf8 $(embedFile "sql/create_db.sql")
 
 -- | Types that can be read from an Sql row.
 class RawSql (RawSqlType a) => SqlRow a where
@@ -29,27 +35,37 @@ instance (SqlRow a, SqlRow b, SqlRow c) => SqlRow (a, b, c) where
     type RawSqlType (a, b, c) = (RawSqlType a, RawSqlType b, RawSqlType c)
     fromRawSql (a, b, c) = (fromRawSql a, fromRawSql b, fromRawSql c)
 
+-- | Monads which can execute SQL queries.
 class MonadIO m => MonadSQL m where
     -- | Runs a query that returns a single value or nothing.
     queryMaybeSingle :: SqlRow a => Text -> [PersistValue] -> m (Maybe a)
+
+    -- | Runs a query that returns a single value.
     querySingle :: SqlRow a => Text -> [PersistValue] -> m a
-    queryMany :: SqlRow a => Text -> [PersistValue] -> SQL [a]
-    execStmt :: Text -> [PersistValue] -> SQL ()
 
+    -- | Runs a query that returns a list of values.
+    queryMany :: SqlRow a => Text -> [PersistValue] -> m [a]
 
+    -- | Executes an SQL statement.
+    execStmt :: Text -> [PersistValue] -> m ()
 
-queryMaybeSingle :: forall a. SqlRow a => Text -> [PersistValue] -> SQL (Maybe a)
-queryMaybeSingle query params = do
-    (result :: [RawSqlType a]) <- rawSql query params
-    return (fmap fromRawSql $ listToMaybe result)
+-- | A normal SQL query.
+newtype SQL a = SQL (ReaderT SqlBackend Handler a)
+    deriving (Functor, Applicative, Monad, MonadIO, MonadReader SqlBackend)
 
--- | Runs a query that returns a single value.
-querySingle :: forall a. SqlRow a => Text -> [PersistValue] -> SQL a
-querySingle query params =
-    queryMaybeSingle query params `orElseM` fail "Database query error."
+instance MonadSQL SQL where
+    queryMaybeSingle query params = do
+        result <- SQL $ rawSql query params
+        return (fmap fromRawSql $ listToMaybe result)
 
--- | Runs a query that returns a list of values.
-queryMany :: forall a. SqlRow a => Text -> [PersistValue] -> SQL [a]
-queryMany query params = do
-    (results :: [RawSqlType a]) <- rawSql query params
-    return $ map fromRawSql results
+    querySingle query params =
+        queryMaybeSingle query params `orElseM` fail "Database query error."
+
+    queryMany query params = do
+        results <- SQL $ rawSql query params
+        return $ map fromRawSql results
+
+    execStmt query params = SQL $ rawExecute query params
+
+runSQL :: SQL a -> Handler a
+runSQL (SQL m) = runDB m

@@ -9,7 +9,7 @@ data App = App ConnectionPool
 -- Routes.
 
 mkYesodData "App" [parseRoutes|
- /classes/                   ClassesR POST
+ /classes/                   ClassesR GET POST
  /classes/#Text              ClassR GET DELETE
  /classes/#Text/fields/      FieldsR GET POST
  /classes/#Text/fields/#Text FieldR GET DELETE

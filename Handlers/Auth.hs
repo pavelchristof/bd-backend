@@ -1,9 +1,8 @@
 module Handlers.Auth where
 
 import Imports
-import Sql.User
-import Sql.Schema
 import Session.User
+import Sql.Auth
 
 import Data.Char
 
@@ -23,12 +22,12 @@ usernameField = checkBool
 getLoginR :: Handler Value
 getLoginR = jsonResult $ do
     user <- getUser
-    forM user $ runDB . getUserName
+    forM user $ runSQL . getUserName
 
 postLoginR :: Handler Value
 postLoginR = jsonResult $ do
     (username, password) <- runInputPost loginForm
-    uid <- runDB (findUser username password)
+    uid <- runSQL (findUser username password)
            `orElseM` fail "Invalid username or password."
     setUser (Just uid)
   where
@@ -44,11 +43,10 @@ postLogoutR = jsonResult $ do
 postRegisterR :: Handler Value
 postRegisterR = jsonResult $ do
     (username, password) <- runInputPost registerForm
-    uid <- runDB $ do
+    uid <- runSQL $ do
         alreadyExists <- userWithNameExists username
         when alreadyExists $ fail "Username already exists."
         uid <- createUser username password
-        createSchema uid
         return uid
     setUser (Just uid)
   where
@@ -59,6 +57,4 @@ postRegisterR = jsonResult $ do
 postDeleteR :: Handler Value
 postDeleteR = jsonResult $ do
     user <- requireUser
-    runDB $ do
-        dropSchema user
-        deleteUser user
+    runSQL $ deleteUser user

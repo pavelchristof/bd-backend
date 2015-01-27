@@ -6,9 +6,9 @@ module Session.User (
     setUser
     ) where
 
-import Imports
-import Sql.User
 import Data.Aeson
+import Imports
+import Sql.Auth
 
 newtype UserData = UserData { userId :: UserId }
     deriving (Generic)
@@ -25,7 +25,7 @@ getUser = do
       Nothing -> return Nothing
       Just (UserData uid) -> do
         -- The user could be deleted, check if it still exists.
-        ok <- runDB $ userWithIdExists uid
+        ok <- runSQL $ userWithIdExists uid
         if ok
            then return (Just uid)
            else do

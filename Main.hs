@@ -1,17 +1,16 @@
 import Control.Monad.Logger (runStderrLoggingT)
 import Database.Persist.Postgresql
 
-import Imports
-import Sql.Schema
-import Handlers.Auth
 import Handlers.Api
+import Handlers.Auth
+import Imports
 
 mkYesodDispatch "App" resourcesApp
 
 main :: IO ()
 main = runStderrLoggingT $ do
     pool <- createPostgresqlPool connectionString connections
-    runSqlPool createUsers pool
+    runSqlPool createDB pool
     liftIO $ warp 3000 $ App pool
   where
     connectionString =

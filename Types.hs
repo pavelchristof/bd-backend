@@ -131,16 +131,15 @@ methodWithArgs (m, a) = object
 
 -- Validation.
 
-parse what = parser (what <* eof) . unpack
-
+validate :: Monad m => (t -> Bool) -> String -> t -> m ()
 validate check msg x =
     unless (check x) $ fail msg
 
 isIdentOk :: Text -> Bool
-isIdentOk = isRight . parse ident
+isIdentOk = isRight . parser (ident <* eof) . unpack
 
 isNameOk :: Text -> Bool
-isNameOk = isRight . parse name
+isNameOk = isRight . parser (name <* eof) . unpack
 
 validateIdent :: Text -> Handler ()
 validateIdent = validate isIdentOk "Invalid identifier."

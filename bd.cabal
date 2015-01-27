@@ -10,8 +10,8 @@ executable bd
   other-modules:       Foundation
                        Imports
                        Sql
+                       Sql.Auth
                        Sql.User
-                       Sql.Schema
                        Sql.Queries
                        Session.User
                        Handlers.Auth
