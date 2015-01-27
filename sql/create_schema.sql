@@ -4,99 +4,95 @@
 
 -- CREATE SCHEMA $;
 
-create table $_Files (
-  id int primary key,
-  path varchar(1024) unique not null
+create table $.Declarations (
+  id serial primary key,
+  file varchar(1024)
 );
 
-create table $_Declarations (
-  id int primary key,
-  file int references $_Files(id)
-);
-
-create table $_Types (
-  id int primary key references $_Declarations(id),
+create table $.Types (
+  id int primary key references $.Declarations(id),
   name varchar(1024) unique not null
 );
 
-create table $_Values (
-  id int references $_Declarations(id),
+create table $.Values (
+  id int references $.Declarations(id),
   name varchar(1024) not null,
   primary key (id, name)
 );
 
 -- Types.
 
-create table $_Primitives (
-  id int primary key references $_Types(id)
+create table $.Primitives (
+  id int primary key references $.Types(id)
 );
 
-create table $_Classes (
-  id int primary key references $_Types(id),
+create table $.Classes (
+  id int primary key references $.Types(id),
   isStruct bool not null
 );
 
-create table $_Enumerations (
-  id int primary key references $_Types(id)
+create table $.Enumerations (
+  id int primary key references $.Types(id)
 );
 
 -- Values.
 
-create table $_Fields (
+create table $.Fields (
   id int primary key,
   name varchar(1024) not null,
-  class int not null references $_Classes(id),
+  class int not null references $.Classes(id),
   static bool not null,
-  foreign key (id, name) references $_Values(id, name),
+  type int not null references $.Types(id),
+  foreign key (id, name) references $.Values(id, name),
   unique (name, class)
 );
 
-create table $_Enumerators (
+create table $.Enumerators (
   id int primary key,
   name varchar(1024) not null,
-  enum int not null references $_Enumerations(id),
-  foreign key (id, name) references $_Values(id, name),
+  enum int not null references $.Enumerations(id),
+  foreign key (id, name) references $.Values(id, name),
   unique (name, enum)
 );
 
-create table $_Methods (
+create table $.Methods (
   id int primary key,
   name varchar(1024) not null,
-  class int references $_Classes(id),
+  class int references $.Classes(id),
   static bool not null,
-  returnType int not null references $_Types(id),
-  foreign key (id, name) references $_Values(id, name)
+  returnType int not null references $.Types(id),
+  foreign key (id, name) references $.Values(id, name)
 );
 
-create table $_Arguments (
-  func int references $_Methods(id),
+create table $.Arguments (
+  func int references $.Methods(id),
   index int not null,
-  type int not null references $_Types(id),
+  type int not null references $.Types(id),
   primary key (func, index)
 );
 
 -- Relations.
 
-create table $_Inherits (
-  parent int references $_Classes(id),
-  child int references $_Classes(id),
+create table $.Inherits (
+  parent int references $.Classes(id),
+  child int references $.Classes(id),
   primary key (parent, child)
 );
 
-create table $_Calls (
-  caller int references $_Methods(id),
-  callee int references $_Methods(id),
+create table $.Calls (
+  caller int references $.Methods(id),
+  callee int references $.Methods(id),
   primary key (caller, callee)
 );
 
-create table $_Reads (
-  func int references $_Methods(id),
-  var int references $_Fields(id),
+create table $.Reads (
+  func int references $.Methods(id),
+  var int references $.Fields(id),
   primary key (func, var)
 );
 
-create table $_Writes (
-  func int references $_Methods(id),
-  var int references $_Fields(id),
+create table $.Writes (
+  func int references $.Methods(id),
+  var int references $.Fields(id),
   primary key (func, var)
 );

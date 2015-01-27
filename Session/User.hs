@@ -10,6 +10,12 @@ import Imports
 import Sql.User
 import Data.Aeson
 
+newtype UserData = UserData { userId :: UserId }
+    deriving (Generic)
+
+instance ToJSON UserData
+instance FromJSON UserData
+
 -- | Get the currently logged in user.
 getUser :: Handler (Maybe UserId)
 getUser = do
@@ -17,11 +23,11 @@ getUser = do
     let mbUser = mbJson >>= decodeStrict'
     case mbUser of
       Nothing -> return Nothing
-      Just user -> do
+      Just (UserData uid) -> do
         -- The user could be deleted, check if it still exists.
-        ok <- runDB $ userWithIdExists user
+        ok <- runDB $ userWithIdExists uid
         if ok
-           then return (Just user)
+           then return (Just uid)
            else do
              setUser Nothing
              return Nothing
@@ -39,4 +45,4 @@ setUser :: Maybe UserId -> Handler ()
 setUser mbUser =
     case mbUser of
       Nothing -> deleteSession "user"
-      Just user -> setSessionBS "user" $ toStrict $ encode $ user
+      Just uid -> setSessionBS "user" $ toStrict $ encode $ UserData uid

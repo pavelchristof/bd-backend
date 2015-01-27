@@ -1,7 +1,6 @@
 module Sql.Schema where
 
 import Imports
-import Session.User
 
 import qualified Data.Text as T
 import Data.FileEmbed
@@ -18,18 +17,15 @@ schemaName uid = "user_" <> pack (show uid)
 
 -- | Creates a schema for an user based on a template.
 createSchema :: UserId -> SQL ()
-createSchema uid = rawExecute sql []
+createSchema uid = rawExecute (sqlForUser uid template) []
   where
     template = decodeUtf8 $(embedFile "sql/create_schema.sql")
-    sql = T.replace "$" (schemaName uid) template
 
 -- | Drops the schema.
 dropSchema :: UserId -> SQL ()
-dropSchema user = rawExecute sql []
+dropSchema uid = rawExecute (sqlForUser uid template) []
   where
     template = decodeUtf8 $(embedFile "sql/drop_schema.sql")
-    sql = T.replace "$" (schemaName user) template
 
--- | Returns the
-tableOfUser :: UserId -> Text -> Text
-tableOfUser user table = schemaName user <> "_" <> table
+sqlForUser :: UserId -> Text -> Text
+sqlForUser uid sql = T.replace "$." (schemaName uid <> "_") sql

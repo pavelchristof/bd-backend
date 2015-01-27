@@ -12,11 +12,13 @@ executable bd
                        Sql
                        Sql.User
                        Sql.Schema
+                       Sql.Queries
                        Session.User
                        Handlers.Auth
+                       Handlers.Api
   default-extensions:  OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies,
                        ScopedTypeVariables, MultiParamTypeClasses, NoImplicitPrelude,
-                       RankNTypes, ConstraintKinds, ViewPatterns
+                       RankNTypes, ConstraintKinds, ViewPatterns, FlexibleContexts
   build-depends:       base < 6, text, yesod, persistent, persistent-postgresql,
                        monad-logger, mtl, classy-prelude-yesod, aeson, file-embed,
                        language-java, parsec
