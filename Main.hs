@@ -1,6 +1,6 @@
 import Control.Monad.Logger (runStderrLoggingT)
 import Database.Persist.Postgresql
-import Network.Wai.Handler.Warp
+import Network.Wai.Handler.SCGI
 import Network.Wai.Middleware.Cors
 
 import Handlers.Auth
@@ -24,12 +24,12 @@ main = runStderrLoggingT $ do
     runSqlPool createDB pool
     liftIO $ do
         app <- toWaiApp $ App pool
-        run 3000 $ cors (const (Just corsPolicy)) app
+        run $ cors (const (Just corsPolicy)) app
   where
     connectionString =
-           "host=localhost "
+           "host=labdb "
         <> "port=5432 "
-        <> "user=yesod "
-        <> "password=yesod "
-        <> "dbname=yesod "
+        <> "user=pn347193 "
+        <> "password=??? "
+        <> "dbname=bd "
     connections = 10

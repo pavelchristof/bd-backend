@@ -29,6 +29,6 @@ executable bd
                        RankNTypes, ConstraintKinds, ViewPatterns, FlexibleContexts
   build-depends:       base < 6, text, yesod, persistent, persistent-postgresql,
                        monad-logger, mtl, classy-prelude-yesod, aeson, file-embed,
-                       warp, wai-cors
+                       warp, wai-cors, wai-extra
   default-language:    Haskell2010
   ghc-options:         -Wall -fno-warn-name-shadowing
