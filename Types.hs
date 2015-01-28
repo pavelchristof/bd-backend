@@ -150,7 +150,7 @@ validate check msg x =
 
 isIdentOk :: Text -> Bool
 isIdentOk t = not (null t)
-           && all isAlphaNum t
+           && all (\c -> isAlphaNum c || c == '_') t
            && isAlpha (T.head t)
 
 isNameOk :: Text -> Bool

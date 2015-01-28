@@ -141,3 +141,21 @@ createMethod classId m (DBMethodArgs args) = do
           [toPersistValue mId, toPersistValue idx, toPersistValue typeId]
 
     return mId
+
+getReaders :: FieldId -> UserSQL [(Text, Text)]
+getReaders fieldId = queryMany
+    "SELECT cl.name, m.name \
+    \FROM $.Reads \
+    \  INNER JOIN $.Methods m ON m.id = $.Reads.func \
+    \  INNER JOIN $.Types cl ON cl.id = m.class \
+    \WHERE $.Reads.var = ?"
+    [toPersistValue fieldId]
+
+getWriters :: FieldId -> UserSQL [(Text, Text)]
+getWriters fieldId = queryMany
+    "SELECT cl.name, m.name \
+    \FROM $.Writes \
+    \  INNER JOIN $.Methods m ON m.id = $.Writes.func \
+    \  INNER JOIN $.Types cl ON cl.id = m.class \
+    \WHERE $.Writes.var = ?"
+    [toPersistValue fieldId]

@@ -9,20 +9,26 @@ data App = App ConnectionPool
 -- Routes.
 
 mkYesodData "App" [parseRoutes|
- /primitives/                PrimitivesR GET POST
- /primitives/#Text           PrimitiveR GET DELETE
- /classes/                   ClassesR GET POST
- /classes/#Text              ClassR GET DELETE
- /classes/#Text/fields/      FieldsR GET POST
- /classes/#Text/fields/#Text FieldR GET DELETE
- /classes/#Text/methods/     MethodsR GET POST
- /method/#Int                MethodR GET DELETE
- /enums/                     EnumsR GET POST
- /enums/#Text                EnumR GET DELETE
- /auth/login/                LoginR GET POST
- /auth/logout/               LogoutR POST
- /auth/register/             RegisterR POST
- /auth/delete/               DeleteR POST
+ /primitives/                        PrimitivesR GET POST
+ /primitives/#Text                   PrimitiveR GET DELETE
+ /classes/                           ClassesR GET POST
+ /classes/#Text                      ClassR GET DELETE
+ /classes/#Text/fields/              FieldsR GET POST
+ /classes/#Text/fields/#Text         FieldR GET DELETE
+ /classes/#Text/fields/#Text/readers ReadersR GET
+ /classes/#Text/fields/#Text/writers WritersR GET
+ /classes/#Text/methods/             MethodsR GET POST
+ /method/#Int                        MethodR GET DELETE
+ /enums/                             EnumsR GET POST
+ /enums/#Text                        EnumR GET DELETE
+ /rels/inherits/                     RelInheritsR GET POST
+ /rels/calls/                        RelCallsR GET POST
+ /rels/reads/                        RelReadsR GET POST
+ /rels/writes/                       RelWritesR GET POST
+ /auth/login/                        LoginR GET POST
+ /auth/logout/                       LogoutR POST
+ /auth/register/                     RegisterR POST
+ /auth/delete/                       DeleteR POST
  |]
 
 -- JSON error messages.

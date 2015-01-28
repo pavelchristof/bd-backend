@@ -113,3 +113,21 @@ deleteMethodR methodId = jsonResult $ do
     runUserSQL uid $ do
         getMethod methodId `orElseM` fail "Method does not exist."
         deleteDecl methodId
+
+getReadersR :: Text -> Text -> Handler Value
+getReadersR className fieldName = jsonResult $ do
+    uid <- requireUser
+    res <- runUserSQL uid $ do
+        classId <- getClassId className `orElseM` fail "Class does not exist."
+        fieldId <- getFieldId classId fieldName `orElseM` fail "Field does not exist."
+        getReaders fieldId
+    return $ map (\(a, b) -> a <> "." <> b) res
+
+getWritersR :: Text -> Text -> Handler Value
+getWritersR className fieldName = jsonResult $ do
+    uid <- requireUser
+    res <- runUserSQL uid $ do
+        classId <- getClassId className `orElseM` fail "Class does not exist."
+        fieldId <- getFieldId classId fieldName `orElseM` fail "Field does not exist."
+        getWriters fieldId
+    return $ map (\(a, b) -> a <> "." <> b) res

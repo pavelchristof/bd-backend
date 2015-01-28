@@ -49,12 +49,12 @@ typeForm = DBType
 classForm :: FormInput Handler DBClass
 classForm = DBClass
     <$> typeForm
-    <*> ireq boolField "isStruct"
+    <*> ireq checkBoxField "isStruct"
 
 fieldForm :: FormInput Handler DBField
 fieldForm = DBField
     <$> valueForm
-    <*> ireq boolField "static"
+    <*> ireq checkBoxField "static"
     <*> ireq nameField "type"
 
 methodForm :: FormInput Handler (DBMethod, DBMethodArgs)
@@ -63,7 +63,7 @@ methodForm = (,) <$> body <*> args
     body = DBMethod
         <$> pure 0
         <*> valueForm
-        <*> ireq boolField "static"
+        <*> ireq checkBoxField "static"
         <*> ireq nameField "returnType"
     args = DBMethodArgs
         <$> ireq nameListField "argTypes"
@@ -72,3 +72,19 @@ enumForm :: FormInput Handler DBEnum
 enumForm = DBEnum
     <$> typeForm
     <*> ireq identListField "items"
+
+inheritsForm :: FormInput Handler (Text, Text)
+inheritsForm = (,)
+    <$> ireq nameField "who"
+    <*> ireq nameField "whom"
+
+callsForm :: FormInput Handler (MethodId, MethodId)
+callsForm = (,)
+    <$> ireq intField "who"
+    <*> ireq intField "whom"
+
+readsOrWritesForm :: FormInput Handler (MethodId, Text, Text)
+readsOrWritesForm = (,,)
+    <$> ireq intField "who"
+    <*> ireq nameField "whomClass"
+    <*> ireq identField "whomField"
