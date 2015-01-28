@@ -21,7 +21,8 @@ corsPolicy = simpleCorsResourcePolicy {
 main :: IO ()
 main = runStderrLoggingT $ do
     pool <- createPostgresqlPool connectionString connections
-    runSqlPool createDB pool
+    -- Do not create db in CGI mode
+    -- runSqlPool createDB pool
     liftIO $ do
         app <- toWaiApp $ App pool
         run $ cors (const (Just corsPolicy)) app
@@ -30,6 +31,6 @@ main = runStderrLoggingT $ do
            "host=labdb "
         <> "port=5432 "
         <> "user=pn347193 "
-        <> "password=??? "
+        <> "password=SXZRR5Gf "
         <> "dbname=bd "
     connections = 10
