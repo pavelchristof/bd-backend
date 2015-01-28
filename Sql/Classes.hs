@@ -159,3 +159,12 @@ getWriters fieldId = queryMany
     \  INNER JOIN $.Types cl ON cl.id = m.class \
     \WHERE $.Writes.var = ?"
     [toPersistValue fieldId]
+
+getCallers :: MethodId -> UserSQL [(Text, Text)]
+getCallers methodId = queryMany
+    "SELECT cl.name, m.name \
+    \FROM $.Calls \
+    \  INNER JOIN $.Methods m ON m.id = $.Calls.caller \
+    \  INNER JOIN $.Types cl ON cl.id = m.class \
+    \WHERE $.Calls.callee = ?"
+    [toPersistValue methodId]

@@ -111,7 +111,7 @@ deleteMethodR :: MethodId -> Handler Value
 deleteMethodR methodId = jsonResult $ do
     uid <- requireUser
     runUserSQL uid $ do
-        getMethod methodId `orElseM` fail "Method does not exist."
+        _ <- getMethod methodId `orElseM` fail "Method does not exist."
         deleteDecl methodId
 
 getReadersR :: Text -> Text -> Handler Value
@@ -130,4 +130,10 @@ getWritersR className fieldName = jsonResult $ do
         classId <- getClassId className `orElseM` fail "Class does not exist."
         fieldId <- getFieldId classId fieldName `orElseM` fail "Field does not exist."
         getWriters fieldId
+    return $ map (\(a, b) -> a <> "." <> b) res
+
+getCallersR :: MethodId -> Handler Value
+getCallersR methodId = jsonResult $ do
+    uid <- requireUser
+    res <- runUserSQL uid $ getCallers methodId
     return $ map (\(a, b) -> a <> "." <> b) res
