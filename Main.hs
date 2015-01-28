@@ -1,6 +1,6 @@
 import Control.Monad.Logger (runStderrLoggingT)
 import Database.Persist.Postgresql
-import Network.Wai.Handler.SCGI
+import Network.Wai.Handler.CGI
 import Network.Wai.Middleware.Cors
 
 import Handlers.Auth
@@ -33,4 +33,4 @@ main = runStderrLoggingT $ do
         <> "user=pn347193 "
         <> "password=SXZRR5Gf "
         <> "dbname=bd "
-    connections = 10
+    connections = 1
