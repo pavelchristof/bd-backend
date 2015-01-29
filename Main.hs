@@ -25,7 +25,9 @@ main = runStderrLoggingT $ do
     -- runSqlPool createDB pool
     liftIO $ do
         app <- toWaiApp $ App pool
-        run $ cors (const (Just corsPolicy)) app
+       -- Disable cors on students
+       -- run $ cors (const (Just corsPolicy)) app
+        run app
   where
     connectionString =
            "host=labdb "
