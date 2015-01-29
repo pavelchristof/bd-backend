@@ -9,23 +9,75 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-DROP DATABASE yesod;
---
--- Name: yesod; Type: DATABASE; Schema: -; Owner: -
---
+SET search_path = public, pg_catalog;
 
-CREATE DATABASE yesod WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.utf8' LC_CTYPE = 'en_US.utf8';
-
-
-\connect yesod
-
-SET statement_timeout = 0;
-SET lock_timeout = 0;
-SET client_encoding = 'UTF8';
-SET standard_conforming_strings = on;
-SET check_function_bodies = false;
-SET client_min_messages = warning;
-
+ALTER TABLE ONLY public.user_1_writes DROP CONSTRAINT user_1_writes_var_fkey;
+ALTER TABLE ONLY public.user_1_writes DROP CONSTRAINT user_1_writes_func_fkey;
+ALTER TABLE ONLY public.user_1_values DROP CONSTRAINT user_1_values_id_fkey;
+ALTER TABLE ONLY public.user_1_types DROP CONSTRAINT user_1_types_id_fkey;
+ALTER TABLE ONLY public.user_1_reads DROP CONSTRAINT user_1_reads_var_fkey;
+ALTER TABLE ONLY public.user_1_reads DROP CONSTRAINT user_1_reads_func_fkey;
+ALTER TABLE ONLY public.user_1_primitives DROP CONSTRAINT user_1_primitives_id_fkey;
+ALTER TABLE ONLY public.user_1_methods DROP CONSTRAINT user_1_methods_returntype_fkey;
+ALTER TABLE ONLY public.user_1_methods DROP CONSTRAINT user_1_methods_id_fkey;
+ALTER TABLE ONLY public.user_1_methods DROP CONSTRAINT user_1_methods_class_fkey;
+ALTER TABLE ONLY public.user_1_inherits DROP CONSTRAINT user_1_inherits_parent_fkey;
+ALTER TABLE ONLY public.user_1_inherits DROP CONSTRAINT user_1_inherits_child_fkey;
+ALTER TABLE ONLY public.user_1_fields DROP CONSTRAINT user_1_fields_type_fkey;
+ALTER TABLE ONLY public.user_1_fields DROP CONSTRAINT user_1_fields_id_fkey;
+ALTER TABLE ONLY public.user_1_fields DROP CONSTRAINT user_1_fields_class_fkey;
+ALTER TABLE ONLY public.user_1_enumerators DROP CONSTRAINT user_1_enumerators_id_fkey;
+ALTER TABLE ONLY public.user_1_enumerators DROP CONSTRAINT user_1_enumerators_enum_fkey;
+ALTER TABLE ONLY public.user_1_enumerations DROP CONSTRAINT user_1_enumerations_id_fkey;
+ALTER TABLE ONLY public.user_1_classes DROP CONSTRAINT user_1_classes_id_fkey;
+ALTER TABLE ONLY public.user_1_calls DROP CONSTRAINT user_1_calls_caller_fkey;
+ALTER TABLE ONLY public.user_1_calls DROP CONSTRAINT user_1_calls_callee_fkey;
+ALTER TABLE ONLY public.user_1_arguments DROP CONSTRAINT user_1_arguments_type_fkey;
+ALTER TABLE ONLY public.user_1_arguments DROP CONSTRAINT user_1_arguments_func_fkey;
+DROP TRIGGER userdeleted ON public.users;
+DROP TRIGGER usercreated ON public.users;
+ALTER TABLE ONLY public.users DROP CONSTRAINT users_username_key;
+ALTER TABLE ONLY public.users DROP CONSTRAINT users_pkey;
+ALTER TABLE ONLY public.user_1_writes DROP CONSTRAINT user_1_writes_pkey;
+ALTER TABLE ONLY public.user_1_values DROP CONSTRAINT user_1_values_pkey;
+ALTER TABLE ONLY public.user_1_types DROP CONSTRAINT user_1_types_pkey;
+ALTER TABLE ONLY public.user_1_types DROP CONSTRAINT user_1_types_name_key;
+ALTER TABLE ONLY public.user_1_reads DROP CONSTRAINT user_1_reads_pkey;
+ALTER TABLE ONLY public.user_1_primitives DROP CONSTRAINT user_1_primitives_pkey;
+ALTER TABLE ONLY public.user_1_methods DROP CONSTRAINT user_1_methods_pkey;
+ALTER TABLE ONLY public.user_1_inherits DROP CONSTRAINT user_1_inherits_pkey;
+ALTER TABLE ONLY public.user_1_fields DROP CONSTRAINT user_1_fields_pkey;
+ALTER TABLE ONLY public.user_1_fields DROP CONSTRAINT user_1_fields_name_class_key;
+ALTER TABLE ONLY public.user_1_enumerators DROP CONSTRAINT user_1_enumerators_pkey;
+ALTER TABLE ONLY public.user_1_enumerators DROP CONSTRAINT user_1_enumerators_name_enum_key;
+ALTER TABLE ONLY public.user_1_enumerations DROP CONSTRAINT user_1_enumerations_pkey;
+ALTER TABLE ONLY public.user_1_declarations DROP CONSTRAINT user_1_declarations_pkey;
+ALTER TABLE ONLY public.user_1_classes DROP CONSTRAINT user_1_classes_pkey;
+ALTER TABLE ONLY public.user_1_calls DROP CONSTRAINT user_1_calls_pkey;
+ALTER TABLE ONLY public.user_1_arguments DROP CONSTRAINT user_1_arguments_pkey;
+ALTER TABLE public.users ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.user_1_declarations ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE public.users_id_seq;
+DROP TABLE public.users;
+DROP TABLE public.user_1_writes;
+DROP TABLE public.user_1_values;
+DROP TABLE public.user_1_types;
+DROP TABLE public.user_1_reads;
+DROP TABLE public.user_1_primitives;
+DROP TABLE public.user_1_methods;
+DROP TABLE public.user_1_inherits;
+DROP TABLE public.user_1_fields;
+DROP TABLE public.user_1_enumerators;
+DROP TABLE public.user_1_enumerations;
+DROP SEQUENCE public.user_1_declarations_id_seq;
+DROP TABLE public.user_1_declarations;
+DROP TABLE public.user_1_classes;
+DROP TABLE public.user_1_calls;
+DROP TABLE public.user_1_arguments;
+DROP FUNCTION public.dropuserschema();
+DROP FUNCTION public.createuserschema();
+DROP EXTENSION plpgsql;
+DROP SCHEMA public;
 --
 -- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
