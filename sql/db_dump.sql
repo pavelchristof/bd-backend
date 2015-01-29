@@ -74,6 +74,7 @@ DROP TABLE pn347193.user_1_declarations;
 DROP TABLE pn347193.user_1_classes;
 DROP TABLE pn347193.user_1_calls;
 DROP TABLE pn347193.user_1_arguments;
+DROP FUNCTION pn347193.isuserok(userid integer);
 DROP FUNCTION pn347193.dropuserschema();
 DROP FUNCTION pn347193.createuserschema();
 DROP EXTENSION plpgsql;
@@ -255,6 +256,20 @@ BEGIN
     RETURN NULL;
 END
 $_$;
+
+
+--
+-- Name: isuserok(integer); Type: FUNCTION; Schema: pn347193; Owner: -
+--
+
+CREATE FUNCTION isuserok(userid integer) RETURNS SETOF boolean
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+BEGIN
+  RETURN QUERY SELECT EXISTS (SELECT 1 FROM Users WHERE id=userId);
+END
+$$;
 
 
 SET default_tablespace = '';

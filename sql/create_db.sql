@@ -1,8 +1,16 @@
-CREATE TABLE Users (
+CREATE TABLE IF NOT EXISTS Users (
     id serial PRIMARY KEY,
     username varchar(256) UNIQUE,
     password varchar(256)
 );
+
+CREATE OR REPLACE FUNCTION isUserOk(userId int) RETURNS SETOF bool
+AS $$
+DECLARE
+BEGIN
+  RETURN QUERY SELECT EXISTS (SELECT 1 FROM Users WHERE id=userId);
+END
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION createUserSchema() RETURNS TRIGGER
 AS $$

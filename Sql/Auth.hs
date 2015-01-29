@@ -4,7 +4,7 @@ import Imports
 
 userWithIdExists :: UserId -> SQL Bool
 userWithIdExists uid = querySingle
-    "SELECT EXISTS (SELECT 1 FROM Users WHERE id=?)"
+    "SELECT userIsOk(?)"
     [toPersistValue uid]
 
 userWithNameExists :: Text -> SQL Bool
